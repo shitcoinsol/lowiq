@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LOWIQ Coin</title>
+  <link rel="icon" href="favicon.png" type="image/png" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Comic Sans MS', sans-serif;
+    }
+    body {
+      background-color: #f9f9f9;
+      color: #111;
+      text-align: center;
+      padding: 20px;
+    }
+    header img {
+      width: 200px;
+      max-width: 60vw;
+      margin: 40px auto;
+    }
+    .button-container {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+    }
+    .btn {
+      background-color: #ffdb4d;
+      color: #111;
+      padding: 14px 28px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      box-shadow: 0 5px #999;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background-color: #ffe680;
+      box-shadow: 0 4px #666;
+    }
+    .btn:active {
+      box-shadow: 0 2px #333;
+      transform: translateY(2px);
+    }
+    .generator {
+      margin-top: 40px;
+      padding: 30px;
+      background-color: #fff;
+      border-radius: 20px;
+      max-width: 512px;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .generator h2 {
+      font-size: 2rem;
+      margin-bottom: 30px;
+    }
+    .upload-box {
+      width: 100%;
+      max-width: 512px;
+      height: 512px;
+      background-color: #f0f0f0;
+      border: 2px dashed #bbb;
+      border-radius: 10px;
+      cursor: pointer;
+      margin: 0 auto 20px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+    .upload-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .upload-box:hover {
+      border-color: #ffdb4d;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    .generate-btn {
+      margin-top: 20px;
+      margin-bottom: 30px;
+    }
+    #result {
+      width: 100%;
+      max-width: 512px;
+      min-height: 512px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f0f0f0;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+    }
+    #preview, #output {
+      max-width: 100%;
+      max-height: 100%;
+      border-radius: 12px;
+    }
+    a.download-link {
+      display: block;
+      margin-top: 15px;
+      color: #0077cc;
+      text-decoration: underline;
+    }
+    @media (max-width: 600px) {
+      .btn {
+        width: 100%;
+        margin-bottom: 10px;
+      }
+      .button-container {
+        flex-direction: column;
+        align-items: center;
+      }
+      .upload-box, #result {
+        width: 100%;
+        height: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="logo.png" alt="LOWIQ Coin Logo" />
+  </header>
+  <div class="button-container">
+    <button class="btn" onclick="window.open('https://twitter.com/lowiqcoin', '_blank')">Community</button>
+    <button class="btn" onclick="window.open('https://dexscreener.com', '_blank')">Buy</button>
+  </div>
+  <section class="generator">
+    <h2>LOWIQ Generator</h2>
+    <label class="upload-box" for="imageInput" id="uploadLabel">
+      <span id="uploadText">Click or drag to upload your image</span>
+    </label>
+    <input type="file" id="imageInput" accept="image/*" />
+    <div class="generate-btn">
+      <button class="btn" onclick="generateImage()">Generate</button>
+    </div>
+    <div id="result">
+      <span style="color:#777">No image generated yet.</span>
+    </div>
+  </section>
+  <script>
+    const imageInput = document.getElementById('imageInput');
+    const uploadLabel = document.getElementById('uploadLabel');
+    const uploadText = document.getElementById('uploadText');
+    const resultDiv = document.getElementById('result');
+
+    imageInput.addEventListener('change', function () {
+      const file = this.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        uploadLabel.innerHTML = `<img src="${e.target.result}" id="preview" alt="Preview" />`;
+      }
+      reader.readAsDataURL(file);
+    });
+
+    function generateImage() {
+      const file = imageInput.files[0];
+      if (!file) {
+        alert('Please select an image first.');
+        return;
+      }
+      const formData = new FormData();
+      formData.append('file', file);
+      resultDiv.innerHTML = '<p>Loading...</p>';
+      fetch('https://your-api-endpoint.onrender.com/generate', {
+        method: 'POST',
+        body: formData,
+      })
+      .then(res => res.json())
+      .then(data => {
+        const img = document.createElement('img');
+        img.src = data.image_url;
+        img.id = 'output';
+        const link = document.createElement('a');
+        link.href = data.image_url;
+        link.download = 'lowiq.png';
+        link.textContent = 'Download Image';
+        link.className = 'download-link';
+        resultDiv.innerHTML = '';
+        resultDiv.appendChild(img);
+        resultDiv.appendChild(link);
+      })
+      .catch(err => {
+        alert('Generation failed. Try again later.');
+        console.error(err);
+        resultDiv.innerHTML = '<span style="color:red">Error generating image.</span>';
+      });
+    }
+  </script>
+</body>
+</html>
